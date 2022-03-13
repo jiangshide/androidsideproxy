@@ -1,0 +1,29 @@
+
+// android_library_import {
+//     name: "native-lib",
+//     aars: ["libs/native_jing_android_proxy-1.2.0.aar"],
+//     sdk_version: "current",
+// }
+
+
+android_app {
+    name: "AndroidSideProxy",
+    srcs: ["src/**/*.java", 
+		  "aidl/com/jingos/IBinderWLManagerService.aidl"
+	],
+    platform_apis: true,
+    certificate: "platform",
+	static_libs: [
+		// "native-lib",
+		"androidx.appcompat_appcompat",
+		"com.google.android.material_material",	
+	],
+	jni_libs: [
+        "libnative_jing_android_proxy",
+	],
+	optimize: {
+		enabled: false,
+		obfuscate: false,
+     	proguard_flags_files: ["proguard.flags"],
+    },
+}

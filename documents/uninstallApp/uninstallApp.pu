@@ -1,0 +1,42 @@
+@startuml unInstallApp
+|uninstallApp|
+start
+: unisntallApp;
+if (通过包名取packageInfo) then (包名找得到)
+	if (判断是否是系统应用) then (是)
+		: 不允许卸载
+		返回 卸载失败状态码;
+		stop
+	endif
+else (找不到包名)
+	: 抛NameNotFound异常
+	返回 卸载失败状态码;
+	stop
+endif
+: 获取packageInstaller对象;
+: 封装 发送广播的事件;
+: 调用 unistall 方法,同时将事件发送出去;
+note right
+	PKMS最终处理 uninstall
+	以及它带着的事件（发送广播）
+end note
+fork
+: 设置条件变量 加入等待队列;
+fork again
+: PKMS 执行卸载流程;
+note right
+不在这个线程里
+end note
+|#LightBlue|receiver|
+: 收到PKMS的广播;
+: 判断卸载状态;
+: signal 通知在等待队列里的线程;
+|uninstallApp|
+end fork
+if (判断状态) then (成功)
+: 返回 成功状态码;
+else (失败)
+: 打印错误信息,返回 失败状态码;
+endif
+stop
+@enduml

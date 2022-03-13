@@ -1,0 +1,46 @@
+@startuml installApp
+hide footbox
+box "JingOsInstaller(client)" #LightBlue
+participant installer as A
+end box
+box "Android-Proxy (Server)" #LightGreen
+participant native层 as B
+participant installApp as C
+participant StatusRceiver as D
+end box
+box "PackageInstaller" #LightPink
+participant PackageInstaller as E
+end box
+box "SystemServer" #LightCyan
+participant PKMS
+end box
+A --> A : install \n app
+A -> B : 连接&&发送安装协议 \n [Localsocket]
+B -> B : 解析协议
+B -> C : 调用 installApp
+C -> E : 获取installer 对象
+return
+C --> C : 创建安装会话
+C -> PKMS ++: session.commit 进入PKMS安装
+activate C #LightCyan
+note over C : 等待（条件变量）
+note over PKMS : 安装
+PKMS -> D --: 收到 广播（显式的）
+D --> D : 通过extras信息，判断安装状态
+D -> C : 发送信号给条件\n变量，同步安装状态
+deactivate C
+C --> C : 判断安装状态
+note right of D
+class installAppInfo
+
+end note
+alt success
+C --> C : stausCode = success
+C --> C : 查询appinfo并给\n返回对象成员变量赋值
+else fail
+C --> C : statusCode = failed
+end
+C -> B : installAppInfo对象
+B --> B : 解析数据
+B -> A : 通过 protoBuf 协议发送数据
+@enduml
